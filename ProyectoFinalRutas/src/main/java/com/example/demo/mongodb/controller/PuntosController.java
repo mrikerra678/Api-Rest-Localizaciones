@@ -48,23 +48,27 @@ public class PuntosController {
 	 @GetMapping("/buscarPunto/all")
 	  public List<Puntos> getListaPuntos() {
 		
-			 List<Localizaciones> listaLocalizaciones = repository2.findAll();
-			    List<Rutas> listaRutas = new ArrayList<Rutas>();
-			    List<Puntos> listaPuntos = new ArrayList<Puntos>();
+		 		//Lista de las localizaciones
+			 	List<Localizaciones> listaLocalizaciones = repository2.findAll();
+		 		//Lista de las localizaciones
+			 	List<Rutas> listaRutas = new ArrayList<Rutas>();
+			    //Lista de Puntos
+			 	List<Puntos> listaPuntos = new ArrayList<Puntos>();
 			    
-			    
+			    //Recorremos la lista de Localizacione y los guardamos en la lista de Rutas
 			    for(int i = 0; i<listaLocalizaciones.size();i++) {
 				    for(int y = 0; y<listaLocalizaciones.get(i).getListaRutas().size();y++) {
 					   listaRutas.add(listaLocalizaciones.get(i).getListaRutas().get(y));
 					   
 				    }
 				}
-			    
+			    //recorremos la lista de Rutas y guardamos en la lista de Puntos
 			    for(int i = 0;i<listaRutas.size();i++) {
 			    	for(int y = 0;y<listaRutas.get(i).getListaPuntos().size();y++) {
 					   listaPuntos.add(listaRutas.get(i).getListaPuntos().get(y));
 				   }
 			  }
+			    //devolvemos todos los puntos de todas las rutas y de las localizaciones
 			    return listaPuntos;
 
 		 }
@@ -72,13 +76,20 @@ public class PuntosController {
 	 @GetMapping("/buscarPunto/{idPunto}")
 	  public List<Puntos> getListaPuntos(@PathVariable String idPunto) {
 		
+	 			//Lista de las localizaciones
 			 	List<Localizaciones> listaLocalizaciones = repository2.findAll();
-			    List<Rutas> listaRutas = new ArrayList<Rutas>();
-			    List<Puntos> listaPuntos = new ArrayList<Puntos>();
+		 		
+			 	//Lista de las localizaciones
+			 	List<Rutas> listaRutas = new ArrayList<Rutas>();
+
+			 	//Lista de Puntos
+			 	List<Puntos> listaPuntos = new ArrayList<Puntos>();
 			    
+			    //Lista de un punto
 			    List<Puntos> listaUnPunto = new ArrayList<Puntos>();
 			    
 			    
+			    //Recorremos la lista de Localizacione y los guardamos en la lista de Rutas
 			    for(int i = 0; i<listaLocalizaciones.size();i++) {
 				    for(int y = 0; y<listaLocalizaciones.get(i).getListaRutas().size();y++) {
 					   listaRutas.add(listaLocalizaciones.get(i).getListaRutas().get(y));
@@ -86,19 +97,23 @@ public class PuntosController {
 				    }
 				}
 			    
+			    
+			    //recorremos la lista de Rutas y guardamos en la lista de Puntos
 			    for(int i = 0;i<listaRutas.size();i++) {
 			    	for(int y = 0;y<listaRutas.get(i).getListaPuntos().size();y++) {
 					   listaPuntos.add(listaRutas.get(i).getListaPuntos().get(y));
 				   }
 			  }
 			    
+			    
+			    //recorremos la lista de Puntos y guardamos en la lista de un punto
 			    for(Puntos punto : listaPuntos) {
 			    	if(punto.getNombre().equals(idPunto)) {
 			    		listaUnPunto.add(punto);
 			    	}
 			    }
 			  
-			    
+			    //Devolvemos un punto
 			    return listaUnPunto;
 
 		 }
@@ -106,16 +121,22 @@ public class PuntosController {
 	 @PostMapping("/nuevoPunto/{idLocalizacion}/{idRuta}")
 	  public void insertarPunto(@PathVariable String idLocalizacion,@PathVariable String idRuta, @RequestBody Puntos puntoNuevo) {
 	 
+		//Guarda una localizacion filtrado por el nombre de la localizacion de la query.
 		 Localizaciones localizacion = repository2.findByNombre(idLocalizacion);
+		 
+		 //Recorremos las rutas dentro de la lista de rutas en la localizacion  
 		 for (Rutas ruta :  localizacion.getListaRutas()) {
+			 
+			//filtro para actualizar segun el nombre de la ruta de la query 
 			if(ruta.getNombre().equals(idRuta)) {
 				ruta.getListaPuntos().add(puntoNuevo);
 			}
 		}
-		 Query query = new Query(Criteria.where("nombre").is(idLocalizacion));
-		 Update update = Update.update("listaRutas", localizacion.getListaRutas());
-		// System.out.print(localizacion.getListaRutas().get(0).getNombre());
 		 
+		
+		 // Inserccion en la localizacion seleccionada y en la ruta seleccionado y añadimos en la listaPuntos el nuevo punto del Body de la llamada
+		 Query query = new Query(Criteria.where("nombre").is(idLocalizacion));
+		 Update update = Update.update("listaRutas", localizacion.getListaRutas());		 
 		 mongoTemplate.findAndModify(query, update, Localizaciones.class);
 
 		
@@ -125,10 +146,17 @@ public class PuntosController {
 	 @PutMapping("/modPunto/{idLocalizacion}/{idRuta}/{idPunto}")
 	  public void actualizarPunto(@PathVariable String idLocalizacion,@PathVariable String idRuta,@PathVariable String idPunto, @RequestBody Puntos nuevoPunto	) {
 	 
+		//Guarda una localizacion filtrado por el nombre de la localizacion de la query.
 		 Localizaciones localizacion = repository2.findByNombre(idLocalizacion);
+		
+		 //Recorremos las rutas dentro de la lista de rutas en la localizacion  
 		 for (Rutas rut : localizacion.getListaRutas()) {
+			 
+			 //filtro para actualizar segun el nombre de la ruta de la query 
 			 if(rut.getNombre().equals(idRuta)) {
+				 //Recorremos los puntos en la lista de Puntos
 				 for(Puntos punto: rut.getListaPuntos()) {
+					 //filtro para actualizar segun el nombre de la ruta de la query 
 					 if(punto.getNombre().equals(idPunto)) {
 						 punto.setNombre(nuevoPunto.getNombre());
 						 punto.setArea_total(nuevoPunto.getArea_total());
@@ -143,28 +171,39 @@ public class PuntosController {
 				
 			 }
 		}
-		 
+		 //actualizacion segun el nombre
 		 Query query = new Query(Criteria.where("nombre").is(idLocalizacion));
 		 new Update();
-		Update update = Update.update("listaRutas", localizacion.getListaRutas());
-		 System.out.print(localizacion.getListaRutas().get(0).getNombre());
-		 
+		 Update update = Update.update("listaRutas", localizacion.getListaRutas());
 		 mongoTemplate.findAndModify(query, update, Localizaciones.class);
 		
 	 }
 	 
+	 
+	 
 	 @DeleteMapping("/eliminarPunto/{idLocalizacion}/{idRuta}/{idPunto}")
 	  public void eliminarRuta(@PathVariable String idLocalizacion,@PathVariable String idRuta,@PathVariable String idPunto) {
 		 
-		 
+		
+		 //Guarda una localizacion filtrado por el nombre de la localizacion de la query.
 		 Localizaciones localizacion = repository2.findByNombre(idLocalizacion);
 		 
+		 //Guardamos los datos de la ruta que vamos a eliminar el punto
 		 Rutas ru = null;
+		 //Guardamos el punto para eliminar
 		 Puntos pun = null;
+		 
+		 //recorremos las rutas de la localizacion
 		 for (Rutas ruta :  localizacion.getListaRutas()) {
+
+			 //filtro para eliminar segun el nombre de la ruta de la query 
 			if(ruta.getNombre().equals(idRuta)) {
+				//guardamos la ruta
 				ru = ruta;
+				//recorremos los puntos de la ruta guardadd
 				for(Puntos punto : ruta.getListaPuntos()) {
+					
+					 //filtro para eliminar segun el nombre del punto de la query 
 					if(punto.getNombre().equals(idPunto)) {
 						pun =punto;
 						
@@ -173,9 +212,11 @@ public class PuntosController {
 			}
 		}
 		 
+		 //eliminamos el punto de la ruta
 		 ru.getListaPuntos().remove(pun);
-		 Query query = new Query(Criteria.where("nombre").is(idLocalizacion));
 		 
+		 //eliminamos segun el nombre de la localizacion
+		 Query query = new Query(Criteria.where("nombre").is(idLocalizacion));
 		 new Update();
 		 Update update = Update.update("listaRutas",ru);
 		 mongoTemplate.findAndModify(query, update, Localizaciones.class);

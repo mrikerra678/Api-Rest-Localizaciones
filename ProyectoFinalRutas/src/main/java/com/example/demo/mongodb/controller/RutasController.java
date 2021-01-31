@@ -61,49 +61,63 @@ public class RutasController {
 	 @GetMapping("/buscarRutas/{idRuta}")
 	  public List<Rutas> getUnaRutas(@PathVariable String idRuta) {
 	 
+		 //Lista de todas las localizaciones
 	    List<Localizaciones> listaLocalizaciones = repository2.findAll();
+	    //Lista de Rutas que guardaremos todas las rutas de todas las localizaciones
 	    List<Rutas> listaRutas = new ArrayList<Rutas>();
 	    
+	    //lista de la ruta que el usuario busca mediante el nombre de la query
 	    List<Rutas> listaUnaRuta = new ArrayList<Rutas>();
 	    	    
+	    //recorremos la lista de localizaciones
 	    for(int i = 0; i<listaLocalizaciones.size();i++) {
 		    for(int y = 0; y<listaLocalizaciones.get(i).getListaRutas().size();y++) {
+		    	//Recorremos la lista de las rutas dentro de las localizaciones y guardamos en otra lista
 			   listaRutas.add(listaLocalizaciones.get(i).getListaRutas().get(y));
 		    }
 		}
 	    
+	    //recorremos la lista de todas las rutas y filtramos la ruta que queremos buscar
 	    for(Rutas ruta : listaRutas) {
-
+	    	//filtro para encontrar 
 	    	if(ruta.getNombre().equals(idRuta)) {
 	    		listaUnaRuta.add(ruta);
 	    	}
 	    }
-	   
+	   //devolvemos la ruta que el usuario ha buscado de la query
 	    return listaUnaRuta;
 	 }
-
-
+	 
 	 @GetMapping("/buscarRutasporloc/{idLocalizaciones}")
-	 public List<Rutas> getRutas(@PathVariable String idLocalizaciones) {
-	
-	   Localizaciones loc = repository2.findByNombre(idLocalizaciones);
-	   
-	   List<Rutas> listaRutas = new ArrayList<Rutas>();
-	   
-	  for(Rutas ru: loc.getListaRutas()) {
-		  listaRutas.add(ru);
-		  
-	  }
-	  
-	  return listaRutas;
-	}
+	  public List<Rutas> getRutas(@PathVariable String idLocalizaciones) {
+	 
+		//Guarda una localizacion filtrado por el nombre de la query.
+	    Localizaciones loc = repository2.findByNombre(idLocalizaciones);
+	    
+	    //Lista de rutas
+	    List<Rutas> listaRutas = new ArrayList<Rutas>();
+	    
+	    //recorremos la localizacion para guardar las rutas en una lista nueva
+	   for(Rutas ru: loc.getListaRutas()) {
+		   listaRutas.add(ru);
+		   
+	   }
+	   //devolvemos la lista con todas las rutas de una localizaicon
+	   return listaRutas;
+	 }
+	 
+	 
 	 
 	 @PostMapping("/nuevaRuta/{idLocalizacion}")
 	  public void insertarRuta(@PathVariable String idLocalizacion, @RequestBody Rutas rutaNueva) {
 	 
+		 //Lista de todas las localizaciones 
 		 List<Localizaciones> listaLocalizaciones = repository2.findAll();
+		 //Recorremos las localizaciones de la lista de las localizaciones
 		 for(Localizaciones loc : listaLocalizaciones) {
+			 //filtro para crear una nueva ruta en la localizacion seleccionada en la query
 			 if(loc.getNombre().equals(idLocalizacion)) {
+				// Inserccion en la localizacion seleccionada y añadimos en la listaRutas la nueva ruta del Body de la llamada
 				Query query = new Query(Criteria.where("nombre").is(idLocalizacion));
 				Update update = new Update().push("listaRutas",rutaNueva);				
 				mongoTemplate.findAndModify(query, update, Localizaciones.class);
@@ -116,11 +130,14 @@ public class RutasController {
 	 @PutMapping("/modRuta/{idLocalizacion}/{idRuta}")
 	  public void actualizarRuta(@PathVariable String idLocalizacion,@PathVariable String idRuta, @RequestBody Rutas nuevaRuta 	) {
 	 
+		//Guarda una localizacion filtrado por el nombre de la query.
 		 Localizaciones localizacion = repository2.findByNombre(idLocalizacion);
 		 
-		 //localizacion.getListaRutas();
+		 //Recorre las rutas dentro de la lista rutas de localizaciones
 		 for (Rutas rut : localizacion.getListaRutas()) {
+			 //filtro para actualizar segun el nombre de la ruta de la query
 			 if(rut.getNombre().equals(idRuta)) {
+				 //sobreescribimos todos los datos cogiendo de la ruta body
 				 rut.setNombre(nuevaRuta.getNombre());
 				 rut.setKm_totales(nuevaRuta.getKm_totales());
 				 rut.setTiempo(nuevaRuta.getTiempo());
@@ -128,6 +145,7 @@ public class RutasController {
 			 }
 		}
 		 
+		 //actualizacion segun el nombre
 		 Query query = new Query(Criteria.where("nombre").is(idLocalizacion));
 		 new Update();
 		Update update = Update.update("listaRutas", localizacion.getListaRutas());
@@ -142,20 +160,21 @@ public class RutasController {
 	 @DeleteMapping("/eliminarRuta/{idLocalizacion}/{idRuta}")
 	  public void eliminarRuta(@PathVariable String idLocalizacion,@PathVariable String idRuta) {
 		 
-		 
+		 //Guarda una localizacion filtrado por el nombre de la query.
 		 Localizaciones localizacion = repository2.findByNombre(idLocalizacion);
-		 
+		 //Ruta que elimina
 		 Rutas ru = null;
+		 //Recorre las rutas dentro de la lista de rutas de la localizacion
 		 for (Rutas ruta :  localizacion.getListaRutas()) {
+			 //filtro para eliminar segun el nombre de la ruta de la query
 			if(ruta.getNombre().equals(idRuta)) {
 				ru = ruta;
 			}
 		}
+		 
+		 //eliminar de la ruta
 		 Query query = new Query(Criteria.where("nombre").is(idLocalizacion));
-		 
-		 Update update = new Update().pull("listaRutas",ru);
-		 //System.out.print(localizacion.getListaRutas().get(0).getNombre());
-		 
+		 Update update = new Update().pull("listaRutas",ru); 
 		 mongoTemplate.findAndModify(query, update, Localizaciones.class);
 	
 						
